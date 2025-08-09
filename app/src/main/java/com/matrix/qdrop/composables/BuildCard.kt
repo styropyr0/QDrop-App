@@ -1,0 +1,237 @@
+package com.matrix.qdrop.composables
+
+import android.app.DownloadManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Environment
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import com.matrix.qdrop.R
+import com.matrix.qdrop.core.DownloadStates
+import com.matrix.qdrop.core.Utils
+import com.matrix.qdrop.models.BuildMeta
+import com.matrix.qdrop.ui.theme.DeepSea
+import com.matrix.qdrop.ui.theme.VibrantBlue
+import kotlinx.coroutines.delay
+import java.io.File
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun BuildCard(
+    build: BuildMeta
+) {
+    val context = LocalContext.current
+    val fileName = Utils.generateHashedApkFileName(
+        build.fileName!!,
+        build.uploadedAt,
+        build.version
+    )
+
+    val downloadPath = File(
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+        fileName
+    )
+
+    var downloadStatus by remember {
+        mutableStateOf(
+            if (downloadPath.exists()) DownloadStates.DOWNLOADED else DownloadStates.DELETED
+        )
+    }
+    var downloadId by remember { mutableLongStateOf(-1L) }
+    var progress by remember { mutableIntStateOf(0) }
+
+    fun downloadApk() {
+        if (downloadPath.exists()) downloadPath.delete()
+        val request = DownloadManager.Request(build.apkUrl!!.toUri()).apply {
+            setTitle("Downloading $fileName")
+            setDescription("Please wait…")
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            setMimeType("application/vnd.android.package-archive")
+        }
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        downloadId = downloadManager.enqueue(request)
+        downloadStatus = DownloadStates.DOWNLOADING
+    }
+
+    fun installApk() {
+        if (!downloadPath.exists()) return
+        val apkUri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            downloadPath
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(apkUri, "application/vnd.android.package-archive")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    }
+
+    fun deleteApk() {
+        if (downloadPath.exists()) {
+            downloadPath.delete()
+            downloadStatus = DownloadStates.DELETED
+        }
+    }
+
+    LaunchedEffect(downloadId) {
+        if (downloadId == -1L) return@LaunchedEffect
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        while (downloadStatus != DownloadStates.DOWNLOADED) {
+            val query = DownloadManager.Query().setFilterById(downloadId)
+            val cursor = downloadManager.query(query)
+            if (cursor != null && cursor.moveToFirst()) {
+                val status =
+                    cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+
+                val totalBytes =
+                    cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                val downloadedBytes =
+                    cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+
+                if (totalBytes > 0)
+                    progress = ((downloadedBytes * 100L) / totalBytes).toInt()
+
+                if (status == DownloadManager.STATUS_SUCCESSFUL && downloadPath.exists())
+                    downloadStatus = DownloadStates.DOWNLOADED
+                else if (status == DownloadManager.STATUS_FAILED)
+                    downloadStatus = DownloadStates.DELETED
+            }
+            cursor?.close()
+            delay(1000)
+        }
+    }
+
+    QStyleCard(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White.copy(alpha = 0.05f),
+        borderRadius = 20
+    ) {
+        Column(modifier = Modifier.padding(15.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_app),
+                    contentDescription = "App Icon",
+                    tint = Color.White,
+                    modifier = Modifier.size(23.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    build.fileName,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            Row {
+                QLabel(
+                    build.label!!,
+                    Utils.resolveColorForLabels(build.label),
+                )
+
+                Spacer(Modifier.width(5.dp))
+
+                QLabel(
+                    build.version!!,
+                    DeepSea,
+                    iconRes = R.drawable.ic_version
+                )
+
+                Spacer(Modifier.width(5.dp))
+
+                QLabel(
+                    "${build.fileSize!! / (1024 * 1024)} MB",
+                    DeepSea,
+                    iconRes = R.drawable.ic_download_size
+                )
+            }
+
+            Spacer(Modifier.height(15.dp))
+            Text("Changelogs:", fontSize = 13.sp, color = Color.Gray)
+            Spacer(Modifier.height(2.dp))
+
+            Text(
+                build.changelog ?: "No changelog available",
+                fontSize = 14.sp,
+                color = Color.LightGray,
+                maxLines = 8,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            val uploadDate = try {
+                val displayFormatter =
+                    DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.US).withZone(
+                        ZoneId.systemDefault()
+                    )
+                ZonedDateTime.parse(build.uploadedAt).format(displayFormatter)
+            } catch (_: Exception) {
+                build.uploadedAt
+            }
+
+            Text("Uploaded: $uploadDate", fontSize = 13.sp, color = Color.Gray)
+
+            Spacer(Modifier.height(15.dp))
+
+            if (downloadStatus != DownloadStates.DOWNLOADING)
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (downloadStatus != DownloadStates.DOWNLOADED) {
+                        Button(onClick = { downloadApk() }, shape = RoundedCornerShape(10.dp)) {
+                            Text("Download")
+                        }
+                    } else {
+                        Button(onClick = { installApk() }, shape = RoundedCornerShape(10.dp)) {
+                            Text("Install")
+                        }
+                        OutlinedButton(
+                            onClick = { deleteApk() },
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("Delete")
+                        }
+                    }
+                }
+            else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Downloading", fontSize = 12.sp)
+                    Spacer(Modifier.width(10.dp))
+                    LinearProgressIndicator(
+                        progress = progress / 100f,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = VibrantBlue,
+                        trackColor = Color.Gray.copy(alpha = 0.3f),
+                        strokeCap = StrokeCap.Round
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+            }
+        }
+    }
+}
