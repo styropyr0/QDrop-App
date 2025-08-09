@@ -90,7 +90,7 @@ fun AuthScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(Modifier.height(5.dp))
+                    Spacer(Modifier.height(2.dp))
 
                     Text(
                         "Access your team's builds",
@@ -102,16 +102,6 @@ fun AuthScreen(
 
                     Spacer(Modifier.height(20.dp))
 
-                    Text(
-                        "Organization ID",
-                        modifier = Modifier.fillMaxWidth(),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Start
-                    )
-
-                    Spacer(Modifier.height(5.dp))
-
                     OutlinedTextField(
                         value = orgId,
                         onValueChange = { orgId = it },
@@ -122,7 +112,7 @@ fun AuthScreen(
                                 color = Color.White.copy(alpha = 0.3f),
                                 shape = RoundedCornerShape(13.dp)
                             ),
-                        placeholder = { Text("Enter ID") },
+                        placeholder = { Text("Organization ID") },
                         singleLine = true,
                         shape = RoundedCornerShape(13.dp),
                         colors = OutlinedTextFieldDefaults.colors(

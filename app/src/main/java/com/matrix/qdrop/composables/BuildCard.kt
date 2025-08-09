@@ -207,6 +207,7 @@ fun BuildCard(
                             Text("Download")
                         }
                     } else {
+                        progress = 0
                         Button(onClick = { installApk() }, shape = RoundedCornerShape(10.dp)) {
                             Text("Install")
                         }

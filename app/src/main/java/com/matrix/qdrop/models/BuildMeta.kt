@@ -1,5 +1,8 @@
 package com.matrix.qdrop.models
 
+import androidx.annotation.Keep
+
+@Keep
 data class BuildMeta(
     val apkUrl: String? = null,
     val changelog: String? = null,
