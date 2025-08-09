@@ -1,4 +1,4 @@
-Go# QDrop – QA Build Distribution App
+# QDrop – QA Build Distribution App
 
 QDrop is an Android application built with **Jetpack Compose** for distributing QA (Quality Assurance) builds to testers.
 It uses:
