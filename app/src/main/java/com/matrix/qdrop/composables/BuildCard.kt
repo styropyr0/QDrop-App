@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -177,11 +178,14 @@ fun BuildCard(
             Spacer(Modifier.height(2.dp))
 
             Text(
-                build.changelog ?: "No changelog available",
+                if (build.changelog?.trim().isNullOrEmpty() == true)
+                    "No changelog available" else build.changelog.toString(),
                 fontSize = 14.sp,
                 color = Color.LightGray,
                 maxLines = 8,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                fontStyle = if (build.changelog?.trim().isNullOrEmpty() == true)
+                    FontStyle.Italic else FontStyle.Normal
             )
 
             Spacer(Modifier.height(10.dp))
@@ -196,7 +200,21 @@ fun BuildCard(
                 build.uploadedAt
             }
 
-            Text("Uploaded: $uploadDate", fontSize = 13.sp, color = Color.Gray)
+
+            Text("Uploaded by:", fontSize = 13.sp, color = Color.Gray)
+
+            Spacer(Modifier.height(1.dp))
+
+            Text(
+                build.user!!,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.LightGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Text("$uploadDate", fontSize = 13.sp, color = Color.Gray)
 
             Spacer(Modifier.height(15.dp))
 

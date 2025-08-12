@@ -11,5 +11,6 @@ data class BuildMeta(
     val fileSize: Long? = null,
     val organizationId: String? = null,
     val uploadedAt: String? = null,
-    val version: String? = null
+    val version: String? = null,
+    val user: String? = null
 )

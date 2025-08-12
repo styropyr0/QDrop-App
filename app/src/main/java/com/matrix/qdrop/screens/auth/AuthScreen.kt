@@ -32,7 +32,14 @@ fun AuthScreen(
     insets: PaddingValues,
     navController: NavHostController? = null
 ) {
-    var orgId by remember { mutableStateOf("") }
+    var orgId by remember {
+        mutableStateOf(
+            QStore(navController!!.context).get(
+                Constants.STR_ORG_ID_REMEMBER,
+                ""
+            ).toString()
+        )
+    }
     val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(Repository()))
 
     Box(
@@ -125,6 +132,7 @@ fun AuthScreen(
                             Spacer(Modifier.height(20.dp))
                             QStore(navController!!.context).apply {
                                 save(Constants.STR_ORG_ID, orgId)
+                                save(Constants.STR_ORG_ID_REMEMBER, orgId)
                                 save(
                                     Constants.STR_ORG_NAME,
                                     viewModel.orgInfo.value?.name ?: "Unknown organization"
@@ -140,7 +148,7 @@ fun AuthScreen(
                                 "This organization does not exist",
                                 color = Color.Red,
                                 fontSize = 13.sp,
-                                textAlign = TextAlign.Start,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Spacer(Modifier.height(20.dp))
