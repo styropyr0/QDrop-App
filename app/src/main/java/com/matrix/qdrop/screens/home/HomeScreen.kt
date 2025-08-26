@@ -168,7 +168,7 @@ fun HomeScreen(
                             )
                         } else {
                             builds.forEach { build ->
-                                Spacer(Modifier.height(10.dp))
+                                Spacer(Modifier.height(8.dp))
                                 BuildCard(
                                     build = build,
                                 )

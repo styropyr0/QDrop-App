@@ -12,5 +12,7 @@ data class BuildMeta(
     val organizationId: String? = null,
     val uploadedAt: String? = null,
     val version: String? = null,
-    val user: String? = null
+    val user: String? = null,
+    var IsUpdate: Boolean? = null
+
 )

@@ -23,7 +23,7 @@ val NeonPurple = Color(0xFFB388FF)
 val ElectricPink = Color(0xFFFF4081)
 val SuperGreen = Color(0xFF00B403)
 val DarkGraySurface = Color(0xFF1E1E1E)
-val DeepSea = Color(0xFF426FB4)
+val DeepSea = Color(0xFF0743A9)
 val TextPrimary = Color(0xFFE0E0E0)
 
 private val IntelliJDarkColorScheme = darkColorScheme(

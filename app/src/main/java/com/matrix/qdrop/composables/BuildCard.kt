@@ -174,21 +174,24 @@ fun BuildCard(
             }
 
             Spacer(Modifier.height(15.dp))
-            Text("Changelogs:", fontSize = 13.sp, color = Color.Gray)
-            Spacer(Modifier.height(2.dp))
 
-            Text(
-                if (build.changelog?.trim().isNullOrEmpty() == true)
-                    "No changelog available" else build.changelog.toString(),
-                fontSize = 14.sp,
-                color = Color.LightGray,
-                maxLines = 8,
-                overflow = TextOverflow.Ellipsis,
-                fontStyle = if (build.changelog?.trim().isNullOrEmpty() == true)
-                    FontStyle.Italic else FontStyle.Normal
-            )
+            if (build.changelog?.trim().isNullOrEmpty() == false) {
+                Text("Changelogs:", fontSize = 13.sp, color = Color.Gray)
 
-            Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(2.dp))
+
+                Text(
+                    build.changelog.toString(),
+                    fontSize = 14.sp,
+                    color = Color.LightGray,
+                    maxLines = 8,
+                    overflow = TextOverflow.Ellipsis,
+                    fontStyle = if (build.changelog?.trim().isNullOrEmpty() == true)
+                        FontStyle.Italic else FontStyle.Normal
+                )
+
+                Spacer(Modifier.height(10.dp))
+            }
 
             val uploadDate = try {
                 val displayFormatter =
@@ -200,8 +203,11 @@ fun BuildCard(
                 build.uploadedAt
             }
 
-
-            Text("Uploaded by:", fontSize = 13.sp, color = Color.Gray)
+            Text(
+                if (build.IsUpdate == true) "Updated by:" else "Uploaded by:",
+                fontSize = 13.sp,
+                color = Color.Gray
+            )
 
             Spacer(Modifier.height(1.dp))
 
@@ -221,17 +227,42 @@ fun BuildCard(
             if (downloadStatus != DownloadStates.DOWNLOADING)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (downloadStatus != DownloadStates.DOWNLOADED) {
-                        Button(onClick = { downloadApk() }, shape = RoundedCornerShape(10.dp)) {
-                            Text("Download")
+                        Button(
+                            onClick = { downloadApk() },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = if (build.IsUpdate == true) {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF2196F3),
+                                    contentColor = Color.White
+                                )
+                            } else {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF2196F3),
+                                    contentColor = Color.White
+                                )
+                            }
+                        ) {
+                            Text(
+                                text = if (build.IsUpdate == true) "Download Update" else "Download"
+                            )
                         }
                     } else {
                         progress = 0
-                        Button(onClick = { installApk() }, shape = RoundedCornerShape(10.dp)) {
+                        Button(
+                            onClick = { installApk() }, shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF64C404),
+                                contentColor = Color.White
+                            )
+                        ) {
                             Text("Install")
                         }
                         OutlinedButton(
                             onClick = { deleteApk() },
-                            shape = RoundedCornerShape(10.dp)
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color.Red
+                            )
                         ) {
                             Text("Delete")
                         }
