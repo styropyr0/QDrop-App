@@ -23,6 +23,7 @@ import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.core.Router
 import com.matrix.qdrop.screens.auth.AuthScreen
 import com.matrix.qdrop.screens.home.HomeScreen
+import com.matrix.qdrop.screens.update.UpdateScreen
 import com.matrix.qdrop.ui.theme.QDropTheme
 
 class MainActivity : ComponentActivity() {
@@ -76,8 +77,8 @@ class MainActivity : ComponentActivity() {
             composable(Router.Home.route) {
                 HomeScreen(navController = navController, insets = insets, topInsets = topInsets)
             }
-            composable(Router.Dashboard.route) {
-//                DashboardScreen(navController)
+            composable(Router.Update.route) {
+                UpdateScreen(navController = navController, insets = insets, topInsets = topInsets)
             }
         }
     }

@@ -4,6 +4,7 @@ package com.matrix.qdrop.screens.home
 import HomeViewModelFactory
 import QDropBackground
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,6 +30,7 @@ import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.R
 import com.matrix.qdrop.composables.BuildCard
+import com.matrix.qdrop.core.Utils
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -106,21 +108,54 @@ fun HomeScreen(
                         }
                     }
 
-                    IconButton(
-                        onClick = {
-                            if (orgId.isNotEmpty()) {
-                                viewModel.fetchBuilds(orgId)
+                    Row {
+                        viewModel.updateData.collectAsState().value?.latestVersion?.let {
+                            val updateAvailability = it > Utils.getCurrentVersionCode()
+                            IconButton(
+                                onClick = {
+                                    if (updateAvailability) {
+                                        navController?.navigate("update")
+                                    } else
+                                        Toast.makeText(
+                                            navController?.context,
+                                            "You are using the latest version of this app.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                }
+                            )
+                            {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (!updateAvailability) R.drawable.ic_no_update
+                                        else R.drawable.ic_update_available
+                                    ),
+                                    contentDescription = "QDrop Updates",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(25.dp)
+                                )
                             }
+                            Spacer(Modifier.width(10.dp))
                         }
-                    )
-                    {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_refresh),
-                            contentDescription = "Refresh",
-                            tint = Color.White,
-                            modifier = Modifier.size(25.dp)
-                        )
 
+                        IconButton(
+                            onClick = {
+                                if (orgId.isNotEmpty()) {
+                                    with(viewModel) {
+                                        fetchAppUpdateData()
+                                        fetchBuilds(orgId)
+                                    }
+                                }
+                            }
+                        )
+                        {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_refresh),
+                                contentDescription = "Refresh",
+                                tint = Color.White,
+                                modifier = Modifier.size(25.dp)
+                            )
+
+                        }
                     }
                 }
             }
@@ -129,6 +164,7 @@ fun HomeScreen(
                 orgId = QStore(context = navController!!.context)
                     .get(Constants.STR_ORG_ID, "") as String
                 if (orgId.isNotEmpty()) {
+                    viewModel.fetchAppUpdateData()
                     viewModel.fetchBuilds(orgId)
                 }
             }
@@ -167,11 +203,19 @@ fun HomeScreen(
                                     .fillMaxWidth()
                             )
                         } else {
-                            builds.forEach { build ->
+                            builds.forEachIndexed { index, build ->
                                 Spacer(Modifier.height(8.dp))
                                 BuildCard(
                                     build = build,
                                 )
+                                if (index == builds.size - 1)
+                                    Spacer(
+                                        Modifier.height(
+                                            WindowInsets.navigationBars
+                                                .asPaddingValues()
+                                                .calculateBottomPadding() - 10.dp
+                                        )
+                                    )
                             }
                         }
 
