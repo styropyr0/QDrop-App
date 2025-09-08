@@ -18,13 +18,15 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
 
 val JetBlack = Color(0xFF000000)
-val VibrantBlue = Color(0xFF40C4FF)
+val VibrantBlue = Color(0xFF457AD5)
 val NeonPurple = Color(0xFFB388FF)
 val ElectricPink = Color(0xFFFF4081)
 val SuperGreen = Color(0xFF00B403)
 val DarkGraySurface = Color(0xFF1E1E1E)
 val DeepSea = Color(0xFF0743A9)
 val TextPrimary = Color(0xFFE0E0E0)
+val BrightOrange = Color(0xFFDA5914)
+val BrightYellow = Color(0xFFFFB700)
 
 private val IntelliJDarkColorScheme = darkColorScheme(
     primary = VibrantBlue,

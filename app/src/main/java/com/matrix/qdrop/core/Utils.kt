@@ -3,6 +3,7 @@ package com.matrix.qdrop.core
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.matrix.qdrop.ui.theme.BrightOrange
 import com.matrix.qdrop.ui.theme.ElectricPink
 import com.matrix.qdrop.ui.theme.NeonPurple
 import com.matrix.qdrop.ui.theme.SuperGreen
@@ -23,7 +24,7 @@ object Utils {
         return if (label?.lowercase()?.contains("prod") == true) SuperGreen
         else if (label?.lowercase()?.contains("beta") == true || label?.lowercase()
                 ?.contains("stag") == true
-        ) NeonPurple
+        ) BrightOrange
         else if (label == "Unspecified") Color.Gray
         else ElectricPink
     }

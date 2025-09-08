@@ -29,9 +29,13 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun fetchAppUpdateData() {
+    fun fetchAppUpdateData(silent: Boolean = true) {
         viewModelScope.launch {
+            if (!silent)
+                _isLoading.value = true
             _updateData.value = repository.getAppUpdateData()
+            if (!silent)
+                _isLoading.value = false
         }
     }
 }

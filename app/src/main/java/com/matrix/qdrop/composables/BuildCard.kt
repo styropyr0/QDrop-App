@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -27,6 +29,7 @@ import com.matrix.qdrop.R
 import com.matrix.qdrop.core.DownloadStates
 import com.matrix.qdrop.core.Utils
 import com.matrix.qdrop.models.BuildMeta
+import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.DeepSea
 import com.matrix.qdrop.ui.theme.VibrantBlue
 import kotlinx.coroutines.delay
@@ -47,6 +50,10 @@ fun BuildCard(
         build.uploadedAt,
         build.version
     )
+
+    var isEllipsized by remember { mutableStateOf(false) }
+
+    var seeMore by remember { mutableStateOf(false) }
 
     val downloadPath = File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
@@ -105,7 +112,6 @@ fun BuildCard(
             if (cursor != null && cursor.moveToFirst()) {
                 val status =
                     cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-
                 val totalBytes =
                     cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
                 val downloadedBytes =
@@ -181,14 +187,33 @@ fun BuildCard(
                 Spacer(Modifier.height(2.dp))
 
                 Text(
-                    build.changelog.toString(),
+                    text = build.changelog.toString(),
                     fontSize = 14.sp,
                     color = Color.LightGray,
-                    maxLines = 8,
+                    maxLines = if (seeMore) Int.MAX_VALUE else 4,
                     overflow = TextOverflow.Ellipsis,
-                    fontStyle = if (build.changelog?.trim().isNullOrEmpty() == true)
-                        FontStyle.Italic else FontStyle.Normal
+                    fontStyle = if (build?.changelog?.trim().isNullOrEmpty() == true)
+                        FontStyle.Italic else FontStyle.Normal,
+                    onTextLayout = { textLayoutResult ->
+                        var lineCount = textLayoutResult.lineCount
+                        if (textLayoutResult.lineCount > 0)
+                            isEllipsized = textLayoutResult.isLineEllipsized(lineCount - 1)
+                    }
                 )
+
+                if (isEllipsized || seeMore) {
+                    Spacer(Modifier.height(5.dp))
+                    Text(
+                        text = if (isEllipsized) "Expand" else "Collapse",
+                        color = Color(0xFF87CEEB),
+                        fontSize = 14.sp,
+                        modifier = Modifier.clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }) {
+                            seeMore = !seeMore
+                        }
+                    )
+                }
 
                 Spacer(Modifier.height(10.dp))
             }
@@ -232,12 +257,12 @@ fun BuildCard(
                             shape = RoundedCornerShape(10.dp),
                             colors = if (build.IsUpdate == true) {
                                 ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF2196F3),
+                                    containerColor = Color(0xFF216EF3),
                                     contentColor = Color.White
                                 )
                             } else {
                                 ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF2196F3),
+                                    containerColor = Color(0xFF216EF3),
                                     contentColor = Color.White
                                 )
                             }
@@ -251,7 +276,7 @@ fun BuildCard(
                         Button(
                             onClick = { installApk() }, shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF64C404),
+                                containerColor = Color(0xFF1C9800),
                                 contentColor = Color.White
                             )
                         ) {
@@ -275,7 +300,7 @@ fun BuildCard(
                     LinearProgressIndicator(
                         progress = progress / 100f,
                         modifier = Modifier.fillMaxWidth(),
-                        color = VibrantBlue,
+                        color = BrightYellow,
                         trackColor = Color.Gray.copy(alpha = 0.3f),
                         strokeCap = StrokeCap.Round
                     )

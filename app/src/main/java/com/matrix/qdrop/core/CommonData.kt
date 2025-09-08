@@ -12,4 +12,5 @@ data class UpdateData(
     var latestVersion: Int? = null,
     var updateMessage: String? = null,
     var downloadUrl: String? = null,
+    var versionName: String? = null
 )
