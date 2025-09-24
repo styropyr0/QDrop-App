@@ -17,6 +17,9 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
     private val _updateData = MutableStateFlow<UpdateData?>(null)
     val updateData: StateFlow<UpdateData?> = _updateData
 
+    private val _foreignBuild = MutableStateFlow<BuildMeta?>(null)
+    val foreignBuild: StateFlow<BuildMeta?> = _foreignBuild
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -25,6 +28,15 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
             _isLoading.value = true
             val result = repository.fetchBuilds(orgId)
             _builds.value = result
+            _isLoading.value = false
+        }
+    }
+
+    fun fetchBuild(orgId: String, buildId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = repository.fetchBuildWithId(orgId, buildId)
+            _foreignBuild.value = result
             _isLoading.value = false
         }
     }

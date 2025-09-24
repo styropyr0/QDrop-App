@@ -1,5 +1,6 @@
 package com.matrix.qdrop
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -44,13 +45,16 @@ class MainActivity : ComponentActivity() {
                         ), vertical = 0.dp
                     )
                     Box(modifier = Modifier.padding(insets)) {
-                        if ((qStore.get(Constants.STR_ORG_ID, "") as String).isNotEmpty())
+                        if ((qStore.get(Constants.STR_ORG_ID, "") as String).isNotEmpty()) {
                             AppNavHost(
                                 navController = navController,
                                 insets = insets,
                                 PaddingValues(vertical = innerPadding.calculateTopPadding()),
                                 startDestination = Router.Home.route
                             )
+
+                            processForeignLink()
+                        }
                         else
                             AppNavHost(
                                 navController = navController,
@@ -59,6 +63,20 @@ class MainActivity : ComponentActivity() {
                             )
                     }
                 }
+            }
+        }
+    }
+
+    private fun processForeignLink() {
+        intent?.data?.let { uri ->
+            when (uri.host) {
+                "build" -> {
+                    startActivity(Intent(this, ForeignLinksActivity::class.java).apply {
+                        putExtra("build_id", uri.getQueryParameter("id"))
+                    })
+                }
+
+                else -> {}
             }
         }
     }

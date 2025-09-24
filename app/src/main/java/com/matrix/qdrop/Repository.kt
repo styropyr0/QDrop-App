@@ -47,6 +47,18 @@ class Repository {
         }
     }
 
+    suspend fun fetchBuildWithId(orgId: String, buildId: String): BuildMeta? {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("qa_builds/$orgId/$buildId")
+            ref.get().addOnSuccessListener { snapshot ->
+                val build = snapshot.getValue(BuildMeta::class.java)
+                continuation.resume(build)
+            }.addOnFailureListener {
+                continuation.resume(null)
+            }
+        }
+    }
+
     suspend fun getAppUpdateData(): UpdateData? {
         return suspendCoroutine { continuation ->
             val ref = database.getReference("app_update")

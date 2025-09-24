@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Environment
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -31,7 +30,6 @@ import com.matrix.qdrop.core.Utils
 import com.matrix.qdrop.models.BuildMeta
 import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.DeepSea
-import com.matrix.qdrop.ui.theme.VibrantBlue
 import kotlinx.coroutines.delay
 import java.io.File
 import java.time.ZoneId
@@ -39,7 +37,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun BuildCard(
     build: BuildMeta
@@ -218,15 +215,16 @@ fun BuildCard(
                 Spacer(Modifier.height(10.dp))
             }
 
-            val uploadDate = try {
-                val displayFormatter =
-                    DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.US).withZone(
-                        ZoneId.systemDefault()
-                    )
-                ZonedDateTime.parse(build.uploadedAt).format(displayFormatter)
-            } catch (_: Exception) {
-                build.uploadedAt
-            }
+            val uploadDate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    val displayFormatter =
+                        DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a", Locale.US)
+                            .withZone(ZoneId.systemDefault())
+                    ZonedDateTime.parse(build.uploadedAt).format(displayFormatter)
+                } catch (_: Exception) {
+                    build.uploadedAt
+                }
+            } else build.uploadedAt
 
             Text(
                 if (build.IsUpdate == true) "Updated by:" else "Uploaded by:",

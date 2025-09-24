@@ -1,9 +1,8 @@
-package com.matrix.qdrop.screens.home
-
+package com.matrix.qdrop.screens.build_detailed
 
 import HomeViewModelFactory
 import QDropBackground
-import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -22,19 +21,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import com.matrix.qdrop.Repository
 import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.R
 import com.matrix.qdrop.composables.BuildCard
-import com.matrix.qdrop.core.Utils
+import com.matrix.qdrop.screens.home.HomeViewModel
 
 @Composable
-fun HomeScreen(
+fun BuildDetailedScreen(
     insets: PaddingValues,
     topInsets: PaddingValues? = null,
-    navController: NavHostController? = null
+    buildId: String,
+    context: ComponentActivity
 ) {
     var orgId by remember { mutableStateOf("") }
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(Repository()))
@@ -70,9 +69,8 @@ fun HomeScreen(
                     Row {
                         IconButton(
                             onClick = {
-                                QStore(navController!!.context).save(Constants.STR_ORG_ID, "")
-                                navController.popBackStack()
-                                navController.navigate("auth")
+                                QStore(context).save(Constants.STR_ORG_ID, "")
+                                context.finish()
                             }
                         ) {
                             Icon(
@@ -93,7 +91,7 @@ fun HomeScreen(
                                 color = Color.White
                             )
                             Text(
-                                QStore(context = navController!!.context).get(
+                                QStore(context).get(
                                     Constants.STR_ORG_NAME,
                                     ""
                                 ) as String,
@@ -104,69 +102,17 @@ fun HomeScreen(
                             )
                         }
                     }
-
-                    Row {
-                        viewModel.updateData.collectAsState().value?.latestVersion?.let {
-                            val updateAvailability = it > Utils.getCurrentVersionCode()
-                            IconButton(
-                                onClick = {
-                                    if (updateAvailability) {
-                                        navController?.navigate("update")
-                                    } else
-                                        Toast.makeText(
-                                            navController?.context,
-                                            "You are using the latest version of this app.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                }
-                            )
-                            {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (!updateAvailability) R.drawable.ic_no_update
-                                        else R.drawable.ic_update_available
-                                    ),
-                                    contentDescription = "QDrop Updates",
-                                    tint = Color.Unspecified,
-                                    modifier = Modifier.size(25.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(10.dp))
-                        }
-
-                        IconButton(
-                            onClick = {
-                                if (orgId.isNotEmpty()) {
-                                    with(viewModel) {
-                                        fetchAppUpdateData()
-                                        fetchBuilds(orgId)
-                                    }
-                                }
-                            }
-                        )
-                        {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_refresh),
-                                contentDescription = "Refresh",
-                                tint = Color.White,
-                                modifier = Modifier.size(25.dp)
-                            )
-
-                        }
-                    }
                 }
             }
 
             LaunchedEffect(Unit) {
-                orgId = QStore(context = navController!!.context)
-                    .get(Constants.STR_ORG_ID, "") as String
+                orgId = QStore(context).get(Constants.STR_ORG_ID, "") as String
                 if (orgId.isNotEmpty()) {
-                    viewModel.fetchAppUpdateData()
-                    viewModel.fetchBuilds(orgId)
+                    viewModel.fetchBuild(orgId, buildId)
                 }
             }
 
-            val builds by viewModel.builds.collectAsState()
+            val build by viewModel.foreignBuild.collectAsState()
             val isLoading by viewModel.isLoading.collectAsState()
 
             Box(
@@ -187,11 +133,18 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState()),
-                        verticalArrangement = if (builds.isEmpty()) Arrangement.Center else Arrangement.Top
+                        verticalArrangement = if (build == null) Arrangement.Center else Arrangement.Top
                     ) {
-                        if (builds.isEmpty()) {
+                        if (build == null) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_not_found),
+                                contentDescription = "Build Not Found",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
+                            )
+                            Spacer(modifier = Modifier.height(5.dp))
                             Text(
-                                "No builds found.",
+                                "Build not found!",
                                 color = Color.White,
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center,
@@ -200,20 +153,7 @@ fun HomeScreen(
                                     .fillMaxWidth()
                             )
                         } else {
-                            builds.forEachIndexed { index, build ->
-                                Spacer(Modifier.height(8.dp))
-                                BuildCard(
-                                    build = build,
-                                )
-                                if (index == builds.size - 1)
-                                    Spacer(
-                                        Modifier.height(
-                                            WindowInsets.navigationBars
-                                                .asPaddingValues()
-                                                .calculateBottomPadding() - 10.dp
-                                        )
-                                    )
-                            }
+                            BuildCard(build!!)
                         }
 
                         Spacer(Modifier.height(20.dp))
