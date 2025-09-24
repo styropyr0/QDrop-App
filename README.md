@@ -4,14 +4,14 @@ QDrop is an Android application built with **Jetpack Compose** for distributing 
 It uses:
 
 - **Firebase Realtime Database** → Stores metadata for each build (name, version, download URL, etc.).  
-- **Supabase Storage** → Hosts APK files and provides public download links for testers.
+- **Cloudflare R2 Storage** → Hosts APK files and provides public download links for testers.
 
 ---
 
 ## Introduction
 
 The app fetches build metadata from Firebase and displays it in a clean UI for testers.  
-When a tester selects a build, the app downloads the APK directly from Supabase and installs it.
+When a tester selects a build, the app downloads the APK directly from Cloudflare and installs it.
 
 ---
 
@@ -66,7 +66,7 @@ README.md                                      # This documentation file
       }
       ```
 
-3. **Supabase Project Settings**
+3. **Cloudflare R2 Project Settings**
 
     - Create a bucket in Supabase Storage (e.g., `qdrop-apps`).
     - Enable public access if testers should download APKs without logging in.
@@ -85,14 +85,12 @@ README.md                                      # This documentation file
 
 ---
 
-## Supabase Setup
+## Cloudflare Setup
 
-1. Visit [Supabase](https://supabase.com/).
+1. Visit Cloudflare
 2. Create a new project.
 3. Create a storage bucket for APK files.
 4. Optionally make it public for direct download access.
-5. Use your **Supabase Project URL** and **Anon Key** in your app for file access.
-
 ---
 
 ## How to Get Started
@@ -135,7 +133,7 @@ cd QDrop-App
 ## Security Notes
 
 * Never commit your real `google-services.json` to public repos.
-* Restrict Firebase and Supabase access rules appropriately in production.
+* Restrict Firebase and Cloudflare access rules appropriately in production.
 * For open-source releases, provide example config files instead of real credentials.
 
 ---
