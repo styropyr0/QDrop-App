@@ -7,6 +7,7 @@ import com.matrix.qdrop.core.CommonData
 import com.matrix.qdrop.core.UpdateData
 import com.matrix.qdrop.models.BuildMeta
 import com.matrix.qdrop.models.OrgInfo
+import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -73,4 +74,25 @@ class Repository {
             }
         }
     }
+
+    suspend fun fetchBuildsByCategory(orgId: String, category: String): List<BuildMeta> {
+        return suspendCoroutine { continuation ->
+            val ref = database.getReference("qa_builds/$orgId")
+                .orderByChild("category")
+                .equalTo(category)
+                .limitToLast(10)
+
+            ref.get().addOnSuccessListener { snapshot ->
+                val builds = mutableListOf<BuildMeta>()
+                for (child in snapshot.children) {
+                    val build = child.getValue(BuildMeta::class.java)
+                    if (build != null) builds.add(build)
+                }
+                continuation.resume(builds.reversed())
+            }.addOnFailureListener {
+                continuation.resume(emptyList())
+            }
+        }
+    }
+
 }

@@ -50,4 +50,20 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
                 _isLoading.value = false
         }
     }
+
+    fun fetchBuildsByFilter(orgId: String, category: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val buildsByCategory = repository.fetchBuildsByCategory(orgId, category)
+
+//            val filtered = buildsByCategory.filter { build ->
+//                (label == null || build.label == label) &&
+//                        (version == null || build.version == version)
+//            }
+
+            _builds.value = buildsByCategory
+            _isLoading.value = false
+        }
+    }
+
 }

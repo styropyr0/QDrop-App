@@ -4,6 +4,10 @@ package com.matrix.qdrop.screens.home
 import HomeViewModelFactory
 import QDropBackground
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +32,11 @@ import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.R
 import com.matrix.qdrop.composables.BuildCard
+import com.matrix.qdrop.composables.QFilterWidget
+import com.matrix.qdrop.core.AppStates
 import com.matrix.qdrop.core.Utils
+import com.matrix.qdrop.screens.auth.AuthViewModel
+import com.matrix.qdrop.screens.auth.AuthViewModelFactory
 
 @Composable
 fun HomeScreen(
@@ -38,6 +46,20 @@ fun HomeScreen(
 ) {
     var orgId by remember { mutableStateOf("") }
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(Repository()))
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(Repository()))
+    val qStore: QStore by remember { mutableStateOf(QStore(navController!!.context)) }
+    var selectedMainOption by remember { mutableStateOf(qStore.get("mainFilter", "") as String) }
+    var selectedSubOptions by remember {
+        mutableStateOf(
+            (qStore.get(
+                "subFilter",
+                ""
+            ) as String).split(",")
+        )
+    }
+    var filterToggle by remember { mutableStateOf(selectedMainOption != "None" && selectedMainOption.isNotEmpty()) }
+    var filterApplied by remember { mutableStateOf(filterToggle) }
+    var requireRefresh by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
@@ -70,9 +92,9 @@ fun HomeScreen(
                     Row {
                         IconButton(
                             onClick = {
-                                QStore(navController!!.context).save(Constants.STR_ORG_ID, "")
-                                navController.popBackStack()
-                                navController.navigate("auth")
+                                qStore.save(Constants.STR_ORG_ID, "")
+                                navController?.popBackStack()
+                                navController?.navigate("auth")
                             }
                         ) {
                             Icon(
@@ -131,8 +153,23 @@ fun HomeScreen(
                                     modifier = Modifier.size(25.dp)
                                 )
                             }
-                            Spacer(Modifier.width(10.dp))
                         }
+
+                        if (authViewModel.state.value == AppStates.SUCCESS)
+                            IconButton(
+                                onClick = {
+                                    filterToggle = !filterToggle
+                                }
+                            )
+                            {
+                                Icon(
+                                    painter = painterResource(id = if (filterApplied) R.drawable.ic_filter_applied else R.drawable.ic_filter),
+                                    contentDescription = "Filter",
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(25.dp)
+                                )
+
+                            }
 
                         IconButton(
                             onClick = {
@@ -157,12 +194,51 @@ fun HomeScreen(
                 }
             }
 
-            LaunchedEffect(Unit) {
+            AnimatedVisibility(
+                visible = filterToggle && authViewModel.state.value == AppStates.SUCCESS,
+                enter = expandVertically(animationSpec = tween(300)),
+                exit = shrinkVertically(animationSpec = tween(250))
+            ) {
+                Column {
+                    QFilterWidget(
+                        mainOptions = listOf("None") + (authViewModel.orgInfo.value?.appsList() ?: listOf()),
+                        subOptions = listOf(
+                            "Staging",
+                            "Production",
+                            "Local",
+                            "2.0.0",
+                            "2.0.1",
+                            "1.9.0"
+                        ),
+                        selectedMain = selectedMainOption.ifEmpty { "None" },
+                        selectedOptions = selectedSubOptions
+                    ) { a, b ->
+                        qStore.save("subFilter", b.joinToString(","))
+                        qStore.save("mainFilter", a)
+                        selectedMainOption = a
+                        selectedSubOptions = b
+                        requireRefresh = true
+                        filterApplied = a != "None" && a.isNotEmpty()
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+
+            LaunchedEffect(selectedMainOption, selectedSubOptions) {
                 orgId = QStore(context = navController!!.context)
                     .get(Constants.STR_ORG_ID, "") as String
                 if (orgId.isNotEmpty()) {
-                    viewModel.fetchAppUpdateData()
-                    viewModel.fetchBuilds(orgId)
+                    if (viewModel.updateData.value == null) {
+                        authViewModel.checkOrgStatus(orgId)
+                        viewModel.fetchAppUpdateData()
+                    }
+                    if (requireRefresh) {
+                        if (filterApplied)
+                            viewModel.fetchBuildsByFilter(orgId, selectedMainOption)
+                        else
+                            viewModel.fetchBuilds(orgId)
+                    }
                 }
             }
 
@@ -201,7 +277,8 @@ fun HomeScreen(
                             )
                         } else {
                             builds.forEachIndexed { index, build ->
-                                Spacer(Modifier.height(8.dp))
+                                if (index > 0)
+                                    Spacer(Modifier.height(8.dp))
                                 BuildCard(
                                     build = build,
                                 )

@@ -142,7 +142,7 @@ fun BuildCard(
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    build.fileName,
+                    build.category ?: build.fileName,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
