@@ -34,6 +34,8 @@ import com.matrix.qdrop.R
 import com.matrix.qdrop.composables.BuildCard
 import com.matrix.qdrop.composables.QFilterWidget
 import com.matrix.qdrop.core.AppStates
+import com.matrix.qdrop.core.Constants.STR_MAIN_FILTER
+import com.matrix.qdrop.core.Constants.STR_SUB_FILTER
 import com.matrix.qdrop.core.Utils
 import com.matrix.qdrop.screens.auth.AuthViewModel
 import com.matrix.qdrop.screens.auth.AuthViewModelFactory
@@ -48,13 +50,13 @@ fun HomeScreen(
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(Repository()))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(Repository()))
     val qStore: QStore by remember { mutableStateOf(QStore(navController!!.context)) }
-    var selectedMainOption by remember { mutableStateOf(qStore.get("mainFilter", "") as String) }
+    var selectedMainOption by remember { mutableStateOf(qStore.get(STR_MAIN_FILTER, "") as String) }
     var selectedSubOptions by remember {
         mutableStateOf(
             (qStore.get(
-                "subFilter",
+                STR_SUB_FILTER,
                 ""
-            ) as String).split(",")
+            ) as String).split(",").filter { it.isNotBlank() }
         )
     }
     var filterToggle by remember { mutableStateOf(selectedMainOption != "None" && selectedMainOption.isNotEmpty()) }
@@ -92,7 +94,11 @@ fun HomeScreen(
                     Row {
                         IconButton(
                             onClick = {
-                                qStore.save(Constants.STR_ORG_ID, "")
+                                with(qStore) {
+                                    remove(Constants.STR_ORG_ID)
+                                    remove(STR_MAIN_FILTER)
+                                    remove(STR_SUB_FILTER)
+                                }
                                 navController?.popBackStack()
                                 navController?.navigate("auth")
                             }
@@ -175,8 +181,17 @@ fun HomeScreen(
                             onClick = {
                                 if (orgId.isNotEmpty()) {
                                     with(viewModel) {
+                                        authViewModel.checkOrgStatus(orgId)
                                         fetchAppUpdateData()
-                                        fetchBuilds(orgId)
+
+                                        if (filterApplied)
+                                            viewModel.fetchBuildsByFilter(
+                                                orgId,
+                                                selectedMainOption,
+                                                selectedSubOptions
+                                            )
+                                        else
+                                            viewModel.fetchBuilds(orgId)
                                     }
                                 }
                             }
@@ -201,20 +216,15 @@ fun HomeScreen(
             ) {
                 Column {
                     QFilterWidget(
-                        mainOptions = listOf("None") + (authViewModel.orgInfo.value?.appsList() ?: listOf()),
-                        subOptions = listOf(
-                            "Staging",
-                            "Production",
-                            "Local",
-                            "2.0.0",
-                            "2.0.1",
-                            "1.9.0"
-                        ),
+                        mainOptions = listOf("None") + (authViewModel.orgInfo.value?.appsList().orEmpty()),
+                        subOptions = authViewModel.orgInfo.value?.tagsList().orEmpty().sorted().reversed(),
                         selectedMain = selectedMainOption.ifEmpty { "None" },
                         selectedOptions = selectedSubOptions
                     ) { a, b ->
-                        qStore.save("subFilter", b.joinToString(","))
-                        qStore.save("mainFilter", a)
+                        with(qStore) {
+                            save(STR_SUB_FILTER, b.joinToString(","))
+                            save(STR_MAIN_FILTER, a)
+                        }
                         selectedMainOption = a
                         selectedSubOptions = b
                         requireRefresh = true
@@ -235,7 +245,11 @@ fun HomeScreen(
                     }
                     if (requireRefresh) {
                         if (filterApplied)
-                            viewModel.fetchBuildsByFilter(orgId, selectedMainOption)
+                            viewModel.fetchBuildsByFilter(
+                                orgId,
+                                selectedMainOption,
+                                selectedSubOptions
+                            )
                         else
                             viewModel.fetchBuilds(orgId)
                     }

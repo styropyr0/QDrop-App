@@ -51,17 +51,16 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun fetchBuildsByFilter(orgId: String, category: String) {
+    fun fetchBuildsByFilter(orgId: String, category: String, filters: List<String>) {
         viewModelScope.launch {
             _isLoading.value = true
             val buildsByCategory = repository.fetchBuildsByCategory(orgId, category)
 
-//            val filtered = buildsByCategory.filter { build ->
-//                (label == null || build.label == label) &&
-//                        (version == null || build.version == version)
-//            }
+            val filtered = if (filters.isNotEmpty()) buildsByCategory.filter { build ->
+                build.label in filters || build.version in filters
+            } else buildsByCategory
 
-            _builds.value = buildsByCategory
+            _builds.value = filtered
             _isLoading.value = false
         }
     }

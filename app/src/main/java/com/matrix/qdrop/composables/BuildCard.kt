@@ -134,12 +134,18 @@ fun BuildCard(
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_app),
-                    contentDescription = "App Icon",
-                    tint = Color.White,
-                    modifier = Modifier.size(23.dp)
-                )
+                if (build.imageUrl.isNullOrEmpty())
+                    Icon(
+                        painter = painterResource(R.drawable.ic_app),
+                        contentDescription = "App Icon",
+                        tint = Color.White,
+                        modifier = Modifier.size(23.dp)
+                    )
+                else
+                    QNetworkImage(
+                        build.imageUrl!!,
+                        modifier = Modifier.size(25.dp)
+                    )
                 Spacer(Modifier.width(10.dp))
                 Text(
                     build.category ?: build.fileName,

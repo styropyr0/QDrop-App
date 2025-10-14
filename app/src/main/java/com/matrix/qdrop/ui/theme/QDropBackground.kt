@@ -12,12 +12,12 @@ import com.matrix.qdrop.R
 @Composable
 fun QDropBackground() {
     Image(
-        painter = painterResource(id = R.drawable.background_bokeh),
+        painter = painterResource(id = R.drawable.bg),
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer { alpha = 0.25f }
-            .blur(40.dp),
+            .graphicsLayer { alpha = 0.8f }
+            .blur(60.dp),
         contentScale = ContentScale.Crop
     )
 }

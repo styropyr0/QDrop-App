@@ -15,5 +15,6 @@ data class BuildMeta(
     val user: String? = null,
     var IsUpdate: Boolean? = null,
     var category: String? = null,
+    var imageUrl: String? = null,
 
 )

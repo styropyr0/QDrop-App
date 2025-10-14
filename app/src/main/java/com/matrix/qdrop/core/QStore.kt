@@ -16,6 +16,11 @@ class QStore(context: Context) {
         editor.apply()
     }
 
+    fun remove(key: String) {
+        editor.remove(key)
+        editor.apply()
+    }
+
     fun get(key: String, defaultValue: Any): Any {
         when (defaultValue) {
             is String -> return sharedPreferences.getString(key, defaultValue) ?: defaultValue
