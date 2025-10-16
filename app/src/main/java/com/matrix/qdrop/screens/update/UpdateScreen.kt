@@ -58,6 +58,7 @@ import androidx.navigation.NavHostController
 import com.matrix.qdrop.R
 import com.matrix.qdrop.Repository
 import com.matrix.qdrop.core.DownloadStates
+import com.matrix.qdrop.core.Utils.getCurrentVersionCode
 import com.matrix.qdrop.screens.home.HomeViewModel
 import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.VibrantBlue
@@ -73,7 +74,7 @@ fun UpdateScreen(
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModelFactory(Repository()))
 
     val context = LocalContext.current
-    val fileName = "qdrop_hgfd873ghf03rf87j.apk"
+    val fileName = "qdrop_osrel_android_${getCurrentVersionCode() + 1}.apk"
 
     val downloadPath = File(
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),

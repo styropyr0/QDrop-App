@@ -69,7 +69,6 @@ fun BuildDetailedScreen(
                     Row {
                         IconButton(
                             onClick = {
-                                QStore(context).save(Constants.STR_ORG_ID, "")
                                 context.finish()
                             }
                         ) {
