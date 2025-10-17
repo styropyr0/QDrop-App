@@ -219,14 +219,24 @@ fun HomeScreen(
                         mainOptions = listOf("None") + (authViewModel.orgInfo.value?.appsList().orEmpty()),
                         subOptions = authViewModel.orgInfo.value?.tagsList().orEmpty().sorted().reversed(),
                         selectedMain = selectedMainOption.ifEmpty { "None" },
-                        selectedOptions = selectedSubOptions
+                        selectedOptions = selectedSubOptions.map { it.removePrefix("tttt_") }
                     ) { a, b ->
+                        var f = listOf<String>()
                         with(qStore) {
-                            save(STR_SUB_FILTER, b.joinToString(","))
+                            val tagsList = authViewModel.orgInfo.value?.tags.orEmpty()
+                            val bTags = b.filter {
+                                it in tagsList.values && tagsList.filter { it1 ->
+                                    it1.value == it && it1.key.startsWith("tttt_")
+                                }.isNotEmpty()
+                            }
+
+                            f = (b - bTags) + (bTags.map { "tttt_$it" })
+
+                            save(STR_SUB_FILTER, f.joinToString(","))
                             save(STR_MAIN_FILTER, a)
                         }
                         selectedMainOption = a
-                        selectedSubOptions = b
+                        selectedSubOptions = f
                         requireRefresh = true
                         filterApplied = a != "None" && a.isNotEmpty()
                     }

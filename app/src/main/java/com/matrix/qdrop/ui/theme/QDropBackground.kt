@@ -16,7 +16,7 @@ fun QDropBackground() {
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer { alpha = 0.8f }
+            .graphicsLayer { alpha = 0.5f }
             .blur(60.dp),
         contentScale = ContentScale.Crop
     )

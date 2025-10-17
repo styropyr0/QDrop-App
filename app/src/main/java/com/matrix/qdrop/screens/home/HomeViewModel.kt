@@ -55,10 +55,18 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             val buildsByCategory = repository.fetchBuildsByCategory(orgId, category)
+            val versionFilters = filters.filter { it.startsWith("tttt_") }
+            val labelFilters = filters - versionFilters
 
-            val filtered = if (filters.isNotEmpty()) buildsByCategory.filter { build ->
-                build.label in filters || build.version in filters
-            } else buildsByCategory
+            val filtered = if (filters.isNotEmpty())
+                buildsByCategory.filter { build ->
+                    val matchesLabel = labelFilters.isEmpty() || build.label in labelFilters
+                    val matchesVersion = versionFilters.isEmpty() || build.version in versionFilters.map {
+                        it.removePrefix("tttt_")
+                    }
+                    matchesLabel && matchesVersion
+                }
+            else buildsByCategory
 
             _builds.value = filtered
             _isLoading.value = false

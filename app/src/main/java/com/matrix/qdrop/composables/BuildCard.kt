@@ -6,8 +6,10 @@ import android.content.Intent
 import android.os.Build
 import android.os.Environment
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -134,52 +136,60 @@ fun BuildCard(
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (build.imageUrl.isNullOrEmpty())
+                if (build.imageUrl.isNullOrEmpty()) {
                     Icon(
                         painter = painterResource(R.drawable.ic_app),
                         contentDescription = "App Icon",
                         tint = Color.White,
-                        modifier = Modifier.size(23.dp)
+                        modifier = Modifier.size(45.dp)
                     )
-                else
+                } else {
                     QNetworkImage(
                         build.imageUrl!!,
-                        modifier = Modifier.size(25.dp)
+                        modifier = Modifier.size(45.dp)
                     )
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    build.category ?: build.fileName,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
-                )
-            }
+                }
 
-            Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.width(15.dp))
 
-            Row {
-                QLabel(
-                    build.label!!,
-                    Utils.resolveColorForLabels(build.label),
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        build.category ?: build.fileName,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
 
-                Spacer(Modifier.width(5.dp))
+                    Spacer(Modifier.height(4.dp))
 
-                QLabel(
-                    build.version!!,
-                    DeepSea,
-                    iconRes = R.drawable.ic_version
-                )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.horizontalScroll(rememberScrollState())
+                    ) {
+                        QLabel(
+                            build.label!!,
+                            Utils.resolveColorForLabels(build.label),
+                        )
 
-                Spacer(Modifier.width(5.dp))
+                        Spacer(Modifier.width(5.dp))
 
-                QLabel(
-                    "${build.fileSize!! / (1024 * 1024)} MB",
-                    DeepSea,
-                    iconRes = R.drawable.ic_download_size
-                )
+                        QLabel(
+                            build.version!!,
+                            DeepSea,
+                            iconRes = R.drawable.ic_version
+                        )
+
+                        Spacer(Modifier.width(5.dp))
+
+                        QLabel(
+                            "${build.fileSize!! / (1024 * 1024)} MB",
+                            DeepSea,
+                            iconRes = R.drawable.ic_download_size
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(15.dp))
