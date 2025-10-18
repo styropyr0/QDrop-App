@@ -1,144 +1,68 @@
 # QDrop – QA Build Distribution App
 
-QDrop is an Android application built with **Jetpack Compose** for distributing QA (Quality Assurance) builds to testers.  
-It uses:
+**QDrop** is an Android application built with **Jetpack Compose**, designed for seamless **QA build distribution**.
+It allows testers and teams to manage, download, and update builds - **without relying on Google Play**.
 
-- **Firebase Realtime Database** → Stores metadata for each build (name, version, download URL, etc.).  
-- **Cloudflare R2 Storage** → Hosts APK files and provides public download links for testers.
+All builds are stored securely on **Cloudflare R2**, and build metadata (like version, label, changelog, etc.) is fetched from **Firebase Realtime Database**.
 
 ---
 
-## Introduction
+## Overview
 
-The app fetches build metadata from Firebase and displays it in a clean UI for testers.  
-When a tester selects a build, the app downloads the APK directly from Cloudflare and installs it.
+QDrop provides a fast, elegant, and private way to share internal builds.
+You can filter, view changelogs, download updates, and even **install new versions directly from within the app**.
 
 ---
 
 ## Screenshots
 
-![Mobile App Screens](screenshots/scr.png)  
+![Mobile App Screens](screenshots/scr.png)
+
+---
+
+## Features
+
+* **Advanced Filtering** — Filter builds by app name, version, label, or environment (e.g., Staging, Production).
+* **In-App Updates** — Download and install new APK versions without needing Google Play.
+* **Realtime Sync** — Automatically fetches build information from Firebase Realtime Database.
+* **Cloudflare R2 Integration** — Stores and serves APKs with fast and secure access.
+* **Detailed Changelogs** — Each build includes notes and fixes for easy QA tracking.
+* **Multi-App Support** — Manage builds from multiple apps or organizations under one account.
+* **Direct Build Metadata Access** — Each build includes version, file size, uploader, and timestamp.
+* **Jetpack Compose UI** — Fully modern and responsive interface with smooth animations and filters.
+* **Private Distribution** — No public app store dependencies; everything stays within your QA environment.
 
 ---
 
 ## Project Structure
 
 ```
-
 app/
 ├── src/
 │    ├── main/
-│    │    ├── java/com/yourpackage/qdropapp/   # Kotlin source files (Jetpack Compose UI, ViewModels, etc.)
-│    │    ├── res/                             # Resources (layouts, drawables, strings)
+│    │    ├── java/com/styropyr0/qdrop/    # Kotlin source files (Compose UI, ViewModels, repository, etc.)
+│    │    ├── res/                         # Resources (icons, themes, strings, etc.)
 │    │    ├── AndroidManifest.xml
-│    │    └── google-services.json             # Firebase config file (to be added by user)
-├── build.gradle                              # Module-level Gradle build file
-├── proguard-rules.pro                        # Optional, for release builds
-build.gradle                                   # Project-level Gradle build file
-gradle.properties                              # Gradle properties
-settings.gradle                                # Gradle settings file
-README.md                                      # This documentation file
-.gitignore                                     # Files/folders ignored by Git
-
-````
-
----
-
-## What You Need to Change Before Running
-
-1. **`google-services.json`**
-
-    - This file contains your Firebase configuration.
-    - A dummy example file (`google-services.example.json`) is provided for reference.
-    - Download your own `google-services.json` from the Firebase Console and place it inside the `app/` directory.
-
-2. **Firebase Realtime Database Rules**
-
-    - Configure rules to allow only intended users to read/write.
-    - Example (public read/write for testing only — **do not use in production**):
-
-      ```json
-      {
-        "rules": {
-          ".read": "true",
-          ".write": "true"
-        }
-      }
-      ```
-
-3. **Cloudflare R2 Project Settings**
-
-    - Create a bucket in Supabase Storage (e.g., `qdrop-apps`).
-    - Enable public access if testers should download APKs without logging in.
-    - Note your **Project URL** and **Public Anon Key** for uploading/downloading files.
-    - Ensure APKs comply with allowed file types (`.apk`) and size limits.
-
----
-
-## Firebase Setup
-
-1. Visit [Firebase Console](https://console.firebase.google.com/).
-2. Create a new project.
-3. Enable **Realtime Database**.
-4. Download the `google-services.json` file and add it to your `app/` folder.
-5. Set security rules based on your needs.
-
----
-
-## Cloudflare Setup
-
-1. Visit Cloudflare
-2. Create a new project.
-3. Create a storage bucket for APK files.
-4. Optionally make it public for direct download access.
----
-
-## How to Get Started
-
-### If you want to **use** the app without contributing:
-
-```bash
-git clone https://github.com/styropyr0/QDrop-App.git
-cd QDrop-App
-````
-
-### If you plan to **contribute** or customize the app:
-
-1. Fork the repository on GitHub: [https://github.com/styropyr0/QDrop-App](https://github.com/styropyr0/QDrop-App)
-
-2. Clone your fork locally:
-
-```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/QDrop-App.git
-cd QDrop-App
+│    │    └── google-services.json          # Firebase config file (add your own)
+├── build.gradle                            # Module-level Gradle file
+├── proguard-rules.pro                      # Optional for release builds
+build.gradle                                # Project-level Gradle file
+gradle.properties                           # Gradle properties
+settings.gradle                             # Settings file
+README.md                                   # This documentation file
+.gitignore
 ```
 
-3. Add your Firebase `google-services.json` file inside the `app/` directory.
-
-4. Configure Supabase credentials and permissions as described.
-
-5. Open the project in Android Studio, then build and run.
-
 ---
 
-## Running the App
+## Setup Instructions
 
-1. Place your real `google-services.json` inside the `app/` directory.
-2. Configure your Supabase bucket and permissions.
-3. Open the project in Android Studio.
-4. Build and run the app on your device or emulator.
+### 1. Add Firebase Configuration
 
----
+Add your **`google-services.json`** file inside the `app/` directory.
+You can download it from your [Firebase Console](https://console.firebase.google.com/).
 
-## Security Notes
-
-* Never commit your real `google-services.json` to public repos.
-* Restrict Firebase and Cloudflare access rules appropriately in production.
-* For open-source releases, provide example config files instead of real credentials.
-
----
-
-## Example `google-services.json` (Dummy)
+Example dummy configuration:
 
 ```json
 {
@@ -156,17 +80,11 @@ cd QDrop-App
           "package_name": "com.example.app"
         }
       },
-      "oauth_client": [],
       "api_key": [
         {
           "current_key": "YOUR_FIREBASE_API_KEY"
         }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
+      ]
     }
   ],
   "configuration_version": "1"
@@ -175,8 +93,72 @@ cd QDrop-App
 
 ---
 
+### 2. Configure Firebase Realtime Database Rules
+
+For testing:
+
+```json
+{
+  "rules": {
+    ".read": "true",
+    ".write": "true"
+  }
+}
+```
+
+For production, restrict access to authenticated or specific users only.
+
+---
+
+### 3. Configure Cloudflare R2
+
+QDrop uses Cloudflare R2 for hosting APK files.
+
+1. Go to **Cloudflare Dashboard → R2**
+2. Create a bucket (e.g., `qdrop-builds`)
+3. Generate **Access Key ID** and **Secret Access Key**
+4. Enable **Public Access** or use presigned URLs for private access
+5. Update the R2 endpoint and keys in your web app (QDrop Web) configuration
+
+---
+
+## Running the App
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/styropyr0/QDrop-App.git
+   cd QDrop-App
+   ```
+
+2. Add your Firebase `google-services.json` in the `app/` directory.
+
+3. Open the project in **Android Studio**.
+
+4. Build and run the app.
+
+5. Sign in or enter your organization ID to fetch builds.
+
+---
+
+## Security Notes
+
+* Never commit your `google-services.json` or R2 credentials to GitHub.
+* Restrict Firebase and Cloudflare access in production.
+* Use dummy or example config files for open-source versions.
+
+---
+
+## How It Works
+
+1. **QDrop Web App** uploads APKs to **Cloudflare R2** and metadata to **Firebase**.
+2. **QDrop Android App** reads that metadata, lists all builds, and provides filters.
+3. Testers select a build → the app downloads and installs it directly.
+
+This architecture eliminates dependency on Google Play or any external app distribution service.
+
+---
+
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
-```
+MIT License — see the [LICENSE](LICENSE) file for details.
