@@ -16,7 +16,7 @@ You can filter, view changelogs, download updates, and even **install new versio
 
 ## Screenshots
 
-![Mobile App Screens](screenshots/scr.png)
+![Mobile App Screens](screenshots/screenshot.png)
 
 ---
 
