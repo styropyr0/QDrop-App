@@ -93,8 +93,8 @@ fun UpdateScreen(
         if (downloadPath.exists()) downloadPath.delete()
         val request =
             DownloadManager.Request(viewModel.updateData.value?.downloadUrl?.toUri()).apply {
-                setTitle("Downloading $fileName")
-                setDescription("Please wait…")
+                setTitle("Downloading update")
+                setDescription(fileName)
                 setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
                 setMimeType("application/vnd.android.package-archive")

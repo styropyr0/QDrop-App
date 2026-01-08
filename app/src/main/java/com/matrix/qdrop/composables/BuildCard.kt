@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Environment
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,6 +32,7 @@ import androidx.core.net.toUri
 import com.matrix.qdrop.R
 import com.matrix.qdrop.core.DownloadStates
 import com.matrix.qdrop.core.Utils
+import com.matrix.qdrop.core.Utils.openUrl
 import com.matrix.qdrop.models.BuildMeta
 import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.DeepSea
@@ -70,8 +74,8 @@ fun BuildCard(
     fun downloadApk() {
         if (downloadPath.exists()) downloadPath.delete()
         val request = DownloadManager.Request(build.apkUrl!!.toUri()).apply {
-            setTitle("Downloading $fileName")
-            setDescription("Please wait…")
+            setTitle(fileName)
+            setDescription("Downloading ${build.label}")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             setMimeType("application/vnd.android.package-archive")
@@ -136,18 +140,49 @@ fun BuildCard(
     ) {
         Column(modifier = Modifier.padding(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (build.imageUrl.isNullOrEmpty()) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_app),
-                        contentDescription = "App Icon",
-                        tint = Color.White,
-                        modifier = Modifier.size(45.dp)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(55.dp)
+                ) {
+
+                    if (build.imageUrl.isNullOrEmpty()) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_app),
+                            contentDescription = "App Icon",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(55.dp)
+                                .padding(3.dp)
+                        )
+                    } else {
+                        QNetworkImage(
+                            build.imageUrl!!,
+                            modifier = Modifier
+                                .size(55.dp)
+                                .padding(3.dp)
+                        )
+                    }
+
+                    val animatedProgress by animateFloatAsState(
+                        targetValue = progress / 100f,
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        ),
+                        label = "DownloadProgress"
                     )
-                } else {
-                    QNetworkImage(
-                        build.imageUrl!!,
-                        modifier = Modifier.size(45.dp)
-                    )
+
+                    if (downloadStatus == DownloadStates.DOWNLOADING) {
+                        CircularProgressIndicator(
+                            progress = animatedProgress,
+                            modifier = Modifier.fillMaxSize(),
+                            strokeWidth = 3.dp,
+                            color = Utils.resolveColorForLabels(build.label),
+                            trackColor = Color.Gray.copy(alpha = 0.3f),
+                            strokeCap = StrokeCap.Round
+                        )
+                    }
+
                 }
 
                 Spacer(Modifier.width(15.dp))
@@ -194,7 +229,7 @@ fun BuildCard(
 
             Spacer(Modifier.height(15.dp))
 
-            if (build.changelog?.trim().isNullOrEmpty() == false) {
+            if (!build.changelog?.trim().isNullOrEmpty()) {
                 Text("Changelogs:", fontSize = 13.sp, color = Color.Gray)
 
                 Spacer(Modifier.height(2.dp))
@@ -208,7 +243,7 @@ fun BuildCard(
                     fontStyle = if (build?.changelog?.trim().isNullOrEmpty() == true)
                         FontStyle.Italic else FontStyle.Normal,
                     onTextLayout = { textLayoutResult ->
-                        var lineCount = textLayoutResult.lineCount
+                        val lineCount = textLayoutResult.lineCount
                         if (textLayoutResult.lineCount > 0)
                             isEllipsized = textLayoutResult.isLineEllipsized(lineCount - 1)
                     }
@@ -263,8 +298,11 @@ fun BuildCard(
 
             Spacer(Modifier.height(15.dp))
 
-            if (downloadStatus != DownloadStates.DOWNLOADING)
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (downloadStatus != DownloadStates.DOWNLOADING) {
                     if (downloadStatus != DownloadStates.DOWNLOADED) {
                         Button(
                             onClick = { downloadApk() },
@@ -281,9 +319,7 @@ fun BuildCard(
                                 )
                             }
                         ) {
-                            Text(
-                                text = if (build.IsUpdate == true) "Download Update" else "Download"
-                            )
+                            Text(text = if (build.IsUpdate == true) "Download Update" else "Download")
                         }
                     } else {
                         progress = 0
@@ -307,19 +343,20 @@ fun BuildCard(
                         }
                     }
                 }
-            else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Downloading", fontSize = 12.sp)
-                    Spacer(Modifier.width(10.dp))
-                    LinearProgressIndicator(
-                        progress = progress / 100f,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = BrightYellow,
-                        trackColor = Color.Gray.copy(alpha = 0.3f),
-                        strokeCap = StrokeCap.Round
+                OutlinedButton(
+                    onClick = { openUrl(build.apkUrl!!, context) },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_copy),
+                        contentDescription = "Open in Browser",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(20.dp)
                     )
+                    Spacer(Modifier.width(5.dp))
+                    Text("Open")
                 }
-                Spacer(Modifier.height(10.dp))
             }
         }
     }

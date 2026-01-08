@@ -39,8 +39,8 @@ fun QNetworkImage(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(5.dp))
-            .background(color = Color.Transparent, shape = RoundedCornerShape(5.dp)),
+            .clip(RoundedCornerShape(60.dp))
+            .background(color = Color.Transparent, shape = RoundedCornerShape(60.dp)),
         contentAlignment = Alignment.Center
     ) {
         when {

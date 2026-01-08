@@ -303,9 +303,7 @@ fun HomeScreen(
                             builds.forEachIndexed { index, build ->
                                 if (index > 0)
                                     Spacer(Modifier.height(8.dp))
-                                BuildCard(
-                                    build = build,
-                                )
+                                BuildCard(build = build)
                                 if (index == builds.size - 1)
                                     Spacer(
                                         Modifier.height(
