@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.graphics.toColorInt
 import com.matrix.qdrop.ui.theme.BrightOrange
 import com.matrix.qdrop.ui.theme.ElectricPink
 import com.matrix.qdrop.ui.theme.MildGreen
@@ -32,9 +33,9 @@ object Utils {
             BrightOrange
         else if (label?.lowercase()?.contains("beta") == true ||
             label?.lowercase()?.contains("stag") == true)
-            Color.Gray
+            BrightOrange
         else if (label == "Unspecified") Color.Gray
-        else ElectricPink
+        else Color("#418fd6".toColorInt())
     }
 
     fun shareUrl(url: String, context: Context) {
