@@ -38,7 +38,7 @@ class Repository {
                 val builds = mutableListOf<BuildMeta>()
                 for (child in snapshot.children) {
                     val build = child.getValue(BuildMeta::class.java)
-                    if (build != null) builds.add(build)
+                    if (build != null) builds.add(build.apply { this.id = child.key })
                 }
                 continuation.resume(builds.reversed())
             }.addOnFailureListener {
@@ -52,7 +52,7 @@ class Repository {
             val ref = database.getReference("qa_builds/$orgId/$buildId")
             ref.get().addOnSuccessListener { snapshot ->
                 val build = snapshot.getValue(BuildMeta::class.java)
-                continuation.resume(build)
+                continuation.resume(build.apply { this?.id = buildId })
             }.addOnFailureListener {
                 continuation.resume(null)
             }
@@ -85,7 +85,7 @@ class Repository {
                 val builds = mutableListOf<BuildMeta>()
                 for (child in snapshot.children) {
                     val build = child.getValue(BuildMeta::class.java)
-                    if (build != null) builds.add(build)
+                    if (build != null) builds.add(build.apply { this.id = child.key })
                 }
                 continuation.resume(builds.reversed())
             }.addOnFailureListener {
