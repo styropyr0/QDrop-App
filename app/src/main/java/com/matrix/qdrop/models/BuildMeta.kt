@@ -16,5 +16,5 @@ data class BuildMeta(
     var IsUpdate: Boolean? = null,
     var category: String? = null,
     var imageUrl: String? = null,
-
+    var id: String? = null
 )

@@ -30,11 +30,13 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.matrix.qdrop.R
+import com.matrix.qdrop.core.Constants
+import com.matrix.qdrop.core.Constants.BASE_URL
 import com.matrix.qdrop.core.DownloadStates
+import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.core.Utils
-import com.matrix.qdrop.core.Utils.openUrl
+import com.matrix.qdrop.core.Utils.shareUrl
 import com.matrix.qdrop.models.BuildMeta
-import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.DeepSea
 import kotlinx.coroutines.delay
 import java.io.File
@@ -159,7 +161,7 @@ fun BuildCard(
                             build.imageUrl!!,
                             modifier = Modifier
                                 .size(55.dp)
-                                .padding(3.dp)
+                                .padding(5.dp)
                         )
                     }
 
@@ -176,7 +178,7 @@ fun BuildCard(
                         CircularProgressIndicator(
                             progress = animatedProgress,
                             modifier = Modifier.fillMaxSize(),
-                            strokeWidth = 3.dp,
+                            strokeWidth = 5.dp,
                             color = Utils.resolveColorForLabels(build.label),
                             trackColor = Color.Gray.copy(alpha = 0.3f),
                             strokeCap = StrokeCap.Round
@@ -343,8 +345,12 @@ fun BuildCard(
                         }
                     }
                 }
+
+                val orgId = QStore(context).get(Constants.STR_ORG_ID, "")
+                val shareUrl = "$BASE_URL/$orgId/${build.id}"
+
                 OutlinedButton(
-                    onClick = { openUrl(build.apkUrl!!, context) },
+                    onClick = { shareUrl(shareUrl, context) },
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                 ) {
@@ -352,10 +358,10 @@ fun BuildCard(
                         painter = painterResource(R.drawable.ic_copy),
                         contentDescription = "Open in Browser",
                         tint = Color.Unspecified,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(Modifier.width(5.dp))
-                    Text("Open")
+                    Text("Share")
                 }
             }
         }

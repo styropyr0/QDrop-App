@@ -37,13 +37,16 @@ object Utils {
         else ElectricPink
     }
 
-    fun openUrl(url: String, context: Context) {
-        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).apply {
-            setPackage("com.android.chrome")
+    fun shareUrl(url: String, context: Context) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, url)
         }
 
+        val chooser = Intent.createChooser(shareIntent, "Share Build")
+
         try {
-            context.startActivity(intent)
+            context.startActivity(chooser)
         } catch (_: ActivityNotFoundException) {
             context.startActivity(
                 Intent(Intent.ACTION_VIEW, url.toUri())
