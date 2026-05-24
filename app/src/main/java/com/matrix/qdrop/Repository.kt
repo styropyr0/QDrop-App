@@ -7,15 +7,14 @@ import com.matrix.qdrop.core.CommonData
 import com.matrix.qdrop.core.UpdateData
 import com.matrix.qdrop.models.BuildMeta
 import com.matrix.qdrop.models.OrgInfo
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class Repository {
     private val database = Firebase.database
 
     suspend fun validateOrganization(orgId: String): CommonData {
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
             val ref = database.getReference("organizations/$orgId")
             ref.get().addOnSuccessListener { snapshot ->
                 val data = snapshot.getValue(OrgInfo::class.java)
@@ -30,10 +29,10 @@ class Repository {
     }
 
     suspend fun fetchBuilds(orgId: String): List<BuildMeta> {
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
             val ref = database.getReference("qa_builds/$orgId")
                 .orderByChild("uploadedAt")
-                .limitToLast(10)
+                .limitToLast(50)
 
             ref.get().addOnSuccessListener { snapshot ->
                 val builds = mutableListOf<BuildMeta>()
@@ -49,7 +48,7 @@ class Repository {
     }
 
     suspend fun fetchBuildWithId(orgId: String, buildId: String): BuildMeta? {
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
             val ref = database.getReference("qa_builds/$orgId/$buildId")
             ref.get().addOnSuccessListener { snapshot ->
                 val build = snapshot.getValue(BuildMeta::class.java)
@@ -61,7 +60,7 @@ class Repository {
     }
 
     suspend fun getAppUpdateData(): UpdateData? {
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
             val ref = database.getReference("app_update")
             ref.get().addOnSuccessListener { snapshot ->
                 val data = snapshot.getValue(UpdateData::class.java)
@@ -76,11 +75,11 @@ class Repository {
     }
 
     suspend fun fetchBuildsByCategory(orgId: String, category: String): List<BuildMeta> {
-        return suspendCoroutine { continuation ->
+        return suspendCancellableCoroutine { continuation ->
             val ref = database.getReference("qa_builds/$orgId")
                 .orderByChild("category")
                 .equalTo(category)
-                .limitToLast(10)
+                .limitToLast(50)
 
             ref.get().addOnSuccessListener { snapshot ->
                 val builds = mutableListOf<BuildMeta>()

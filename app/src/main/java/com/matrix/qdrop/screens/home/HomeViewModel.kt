@@ -56,7 +56,7 @@ class HomeViewModel(private val repository: Repository) : ViewModel() {
             _isLoading.value = true
             val buildsByCategory = repository.fetchBuildsByCategory(orgId, category)
             val versionFilters = filters.filter { it.startsWith("tttt_") }
-            val labelFilters = filters - versionFilters
+            val labelFilters = filters - versionFilters.toSet()
 
             val filtered = if (filters.isNotEmpty())
                 buildsByCategory.filter { build ->
