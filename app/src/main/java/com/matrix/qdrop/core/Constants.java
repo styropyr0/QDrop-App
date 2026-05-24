@@ -7,4 +7,5 @@ public class Constants {
     public static final String STORE_NAME = "QDrop";
     public static final String STR_SUB_FILTER = "subFilter";
     public static final String STR_MAIN_FILTER = "mainFilter";
+    public static final String BASE_URL = "https://your-qdrop_baseurl";
 }
