@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">QDrop</string>
+    <string name="fcm_channel_id">qdrop_builds</string>
+    <string name="fcm_channel_name">Build updates</string>
+    <string name="fcm_channel_description">Notifications when new or updated builds are available</string>
 </resources>

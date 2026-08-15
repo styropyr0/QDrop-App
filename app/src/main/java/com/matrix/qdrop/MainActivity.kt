@@ -1,10 +1,14 @@
 package com.matrix.qdrop
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,6 +27,8 @@ import com.google.firebase.FirebaseApp
 import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.core.QStore
 import com.matrix.qdrop.core.Router
+import com.matrix.qdrop.notifications.BuildNotificationHelper
+import com.matrix.qdrop.notifications.FcmTokenManager
 import com.matrix.qdrop.screens.auth.AuthScreen
 import com.matrix.qdrop.screens.home.HomeScreen
 import com.matrix.qdrop.screens.update.UpdateScreen
@@ -30,11 +37,23 @@ import com.matrix.qdrop.ui.theme.QDropTheme
 class MainActivity : ComponentActivity() {
     lateinit var qStore: QStore
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* no-op: notifications remain optional */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FirebaseApp.initializeApp(this)
+        BuildNotificationHelper.ensureChannel(this)
         enableEdgeToEdge()
         qStore = QStore(this)
+
+        val isLoggedIn = (qStore.get(Constants.STR_ORG_ID, "") as String).isNotEmpty()
+        if (isLoggedIn) {
+            requestNotificationPermission()
+            FcmTokenManager.registerForOrganization(this)
+        }
+
         setContent {
             QDropTheme {
                 val navController = rememberNavController()
@@ -45,40 +64,82 @@ class MainActivity : ComponentActivity() {
                         ), vertical = 0.dp
                     )
                     Box(modifier = Modifier.padding(insets)) {
-                        if ((qStore.get(Constants.STR_ORG_ID, "") as String).isNotEmpty()) {
+                        if (isLoggedIn) {
                             AppNavHost(
                                 navController = navController,
                                 insets = insets,
                                 PaddingValues(vertical = innerPadding.calculateTopPadding()),
                                 startDestination = Router.Home.route
                             )
-
-                            processForeignLink()
-                        }
-                        else
+                        } else {
                             AppNavHost(
                                 navController = navController,
                                 insets,
                                 PaddingValues(vertical = innerPadding.calculateTopPadding())
                             )
+                        }
                     }
                 }
             }
         }
+
+        if (isLoggedIn) {
+            handleIncomingIntent(intent)
+        }
     }
 
-    private fun processForeignLink() {
-        intent?.data?.let { uri ->
-            when (uri.host) {
-                "build" -> {
-                    startActivity(Intent(this, ForeignLinksActivity::class.java).apply {
-                        putExtra("build_id", uri.getQueryParameter("id"))
-                    })
-                }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if ((qStore.get(Constants.STR_ORG_ID, "") as String).isNotEmpty()) {
+            handleIncomingIntent(intent)
+        }
+    }
 
-                else -> {}
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
+
+        val buildId = resolveBuildId(intent) ?: return
+        startActivity(Intent(this, ForeignLinksActivity::class.java).apply {
+            putExtra(Constants.EXTRA_BUILD_ID, buildId)
+        })
+        intent.replaceExtras(Bundle())
+        intent.data = null
+    }
+
+    private fun resolveBuildId(intent: Intent): String? {
+        intent.getStringExtra(Constants.EXTRA_BUILD_ID)
+            ?.takeIf { it.isNotBlank() }
+            ?.let { return it }
+
+        intent.getStringExtra("buildId")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { return it }
+
+        intent.getStringExtra("deepLink")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { deepLink ->
+                BuildNotificationHelper.extractBuildId(emptyMap(), deepLink)?.let { return it }
+            }
+
+        intent.data?.let { uri ->
+            if (uri.host == "build") {
+                return uri.getQueryParameter("id")?.takeIf { it.isNotBlank() }
             }
         }
+
+        return null
     }
 
     @Composable

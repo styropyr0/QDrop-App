@@ -12,13 +12,17 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.screens.build_detailed.BuildDetailedScreen
 import com.matrix.qdrop.ui.theme.QDropTheme
 
 class ForeignLinksActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val buildId = intent.getStringExtra("build_id")
+        val buildId = intent.getStringExtra(Constants.EXTRA_BUILD_ID)
+            ?: intent.getStringExtra("build_id")
+            ?: intent.getStringExtra("buildId")
+            ?: ""
         enableEdgeToEdge()
         setContent {
             QDropTheme {
@@ -31,7 +35,7 @@ class ForeignLinksActivity : ComponentActivity() {
                     Box(modifier = Modifier.padding(insets)) {
                         BuildDetailedScreen(
                             insets = insets,
-                            buildId = buildId.toString(),
+                            buildId = buildId,
                             topInsets = PaddingValues(vertical = innerPadding.calculateTopPadding()),
                             context = this@ForeignLinksActivity
                         )

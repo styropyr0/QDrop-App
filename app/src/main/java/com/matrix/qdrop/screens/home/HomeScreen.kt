@@ -3,7 +3,12 @@ package com.matrix.qdrop.screens.home
 
 import HomeViewModelFactory
 import QDropBackground
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -25,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.matrix.qdrop.Repository
@@ -37,6 +43,8 @@ import com.matrix.qdrop.core.AppStates
 import com.matrix.qdrop.core.Constants.STR_MAIN_FILTER
 import com.matrix.qdrop.core.Constants.STR_SUB_FILTER
 import com.matrix.qdrop.core.Utils
+import com.matrix.qdrop.notifications.BuildNotificationHelper
+import com.matrix.qdrop.notifications.FcmTokenManager
 import com.matrix.qdrop.screens.auth.AuthViewModel
 import com.matrix.qdrop.screens.auth.AuthViewModelFactory
 
@@ -62,6 +70,25 @@ fun HomeScreen(
     var filterToggle by remember { mutableStateOf(selectedMainOption != "None" && selectedMainOption.isNotEmpty()) }
     var filterApplied by remember { mutableStateOf(filterToggle) }
     var requireRefresh by remember { mutableStateOf(true) }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* notifications remain optional */ }
+
+    LaunchedEffect(Unit) {
+        val context = navController!!.context
+        BuildNotificationHelper.ensureChannel(context)
+        FcmTokenManager.registerForOrganization(context)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -94,6 +121,7 @@ fun HomeScreen(
                     Row {
                         IconButton(
                             onClick = {
+                                FcmTokenManager.unregister(navController!!.context)
                                 with(qStore) {
                                     remove(Constants.STR_ORG_ID)
                                     remove(STR_MAIN_FILTER)

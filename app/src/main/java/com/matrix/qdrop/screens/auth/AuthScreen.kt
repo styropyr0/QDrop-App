@@ -25,6 +25,7 @@ import com.matrix.qdrop.composables.QStyleCard
 import com.matrix.qdrop.core.AppStates
 import com.matrix.qdrop.core.Constants
 import com.matrix.qdrop.core.QStore
+import com.matrix.qdrop.notifications.FcmTokenManager
 import com.matrix.qdrop.ui.theme.NeonPurple
 
 @Composable
@@ -138,6 +139,7 @@ fun AuthScreen(
                                     viewModel.orgInfo.value?.name ?: "Unknown organization"
                                 )
                             }
+                            FcmTokenManager.registerForOrganization(navController.context, orgId)
                             navController.popBackStack()
                             navController.navigate("home")
                         }
