@@ -8,7 +8,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.toColorInt
 import com.matrix.qdrop.ui.theme.BrightOrange
-import com.matrix.qdrop.ui.theme.ElectricPink
 import com.matrix.qdrop.ui.theme.MildGreen
 import com.matrix.qdrop.ui.theme.SuperGreen
 import java.security.MessageDigest

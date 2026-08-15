@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun BuildCard(
@@ -131,7 +133,7 @@ fun BuildCard(
                     downloadStatus = DownloadStates.DELETED
             }
             cursor?.close()
-            delay(1000)
+            delay(1000.milliseconds)
         }
     }
 
@@ -176,12 +178,12 @@ fun BuildCard(
 
                     if (downloadStatus == DownloadStates.DOWNLOADING) {
                         CircularProgressIndicator(
-                            progress = animatedProgress,
+                            progress = { animatedProgress },
                             modifier = Modifier.fillMaxSize(),
-                            strokeWidth = 5.dp,
                             color = Utils.resolveColorForLabels(build.label),
+                            strokeWidth = 5.dp,
                             trackColor = Color.Gray.copy(alpha = 0.3f),
-                            strokeCap = StrokeCap.Round
+                            strokeCap = StrokeCap.Round,
                         )
                     }
 
@@ -237,13 +239,12 @@ fun BuildCard(
                 Spacer(Modifier.height(2.dp))
 
                 Text(
-                    text = build.changelog.toString(),
+                    text = build.changelog,
                     fontSize = 14.sp,
                     color = Color.LightGray,
                     maxLines = if (seeMore) Int.MAX_VALUE else 4,
                     overflow = TextOverflow.Ellipsis,
-                    fontStyle = if (build?.changelog?.trim().isNullOrEmpty() == true)
-                        FontStyle.Italic else FontStyle.Normal,
+                    fontStyle = if (build.changelog.trim().isEmpty()) FontStyle.Italic else FontStyle.Normal,
                     onTextLayout = { textLayoutResult ->
                         val lineCount = textLayoutResult.lineCount
                         if (textLayoutResult.lineCount > 0)

@@ -127,8 +127,8 @@ fun HomeScreen(
                                     remove(STR_MAIN_FILTER)
                                     remove(STR_SUB_FILTER)
                                 }
-                                navController?.popBackStack()
-                                navController?.navigate("auth")
+                                navController.popBackStack()
+                                navController.navigate("auth")
                             }
                         ) {
                             Icon(
@@ -258,7 +258,7 @@ fun HomeScreen(
                                 }.isNotEmpty()
                             }
 
-                            f = (b - bTags) + (bTags.map { "tttt_$it" })
+                            f = (b - bTags.toSet()) + (bTags.map { "tttt_$it" })
 
                             save(STR_SUB_FILTER, f.joinToString(","))
                             save(STR_MAIN_FILTER, a)

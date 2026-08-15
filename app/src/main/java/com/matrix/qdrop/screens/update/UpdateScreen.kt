@@ -64,6 +64,7 @@ import com.matrix.qdrop.ui.theme.BrightYellow
 import com.matrix.qdrop.ui.theme.VibrantBlue
 import kotlinx.coroutines.delay
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun UpdateScreen(
@@ -141,7 +142,7 @@ fun UpdateScreen(
                     downloadStatus = DownloadStates.DELETED
             }
             cursor?.close()
-            delay(1000)
+            delay(1000.milliseconds)
         }
     }
 
@@ -289,11 +290,11 @@ fun UpdateScreen(
 
                     if (downloadStatus == DownloadStates.DOWNLOADING) {
                         LinearProgressIndicator(
-                            progress = progress / 100f,
+                            progress = { progress / 100f },
                             modifier = Modifier.fillMaxWidth(),
                             color = BrightYellow,
                             trackColor = Color.Gray.copy(alpha = 0.3f),
-                            strokeCap = StrokeCap.Round
+                            strokeCap = StrokeCap.Round,
                         )
                         Spacer(Modifier.height(20.dp))
                     }

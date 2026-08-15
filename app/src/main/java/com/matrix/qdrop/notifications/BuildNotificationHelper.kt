@@ -1,16 +1,21 @@
 package com.matrix.qdrop.notifications
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.matrix.qdrop.ForeignLinksActivity
 import com.matrix.qdrop.R
 import com.matrix.qdrop.core.Constants
+import androidx.core.net.toUri
 
 object BuildNotificationHelper {
 
@@ -50,7 +55,7 @@ object BuildNotificationHelper {
         )
 
         val notification = NotificationCompat.Builder(context, Constants.FCM_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_app)
+            .setSmallIcon(R.drawable.qdrop_icon_notif)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -59,14 +64,25 @@ object BuildNotificationHelper {
             .setContentIntent(pendingIntent)
             .build()
 
-        NotificationManagerCompat.from(context).notify(notificationId, notification)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || checkNotificationPermission(context)) {
+            NotificationManagerCompat.from(context).notify(
+                notificationId,
+                notification
+            )
+        }
     }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun checkNotificationPermission(context: Context) = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.POST_NOTIFICATIONS
+    ) == PackageManager.PERMISSION_GRANTED
 
     fun extractBuildId(data: Map<String, String>, deepLink: String? = data["deepLink"]): String? {
         data["buildId"]?.takeIf { it.isNotBlank() }?.let { return it }
 
         if (!deepLink.isNullOrBlank()) {
-            val uri = android.net.Uri.parse(deepLink)
+            val uri = deepLink.toUri()
             uri.getQueryParameter("id")?.takeIf { it.isNotBlank() }?.let { return it }
         }
 
