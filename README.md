@@ -27,7 +27,6 @@ You can filter, view changelogs, download updates, and even **install new versio
 * **Realtime Sync** — Automatically fetches build information from Firebase Realtime Database.
 * **Cloudflare R2 Integration** — Stores and serves APKs with fast and secure access.
 * **Detailed Changelogs** — Each build includes notes and fixes for easy QA tracking.
-* **Multi-App Support** — Manage builds from multiple apps or organizations under one account.
 * **Direct Build Metadata Access** — Each build includes version, file size, uploader, and timestamp.
 * **Jetpack Compose UI** — Fully modern and responsive interface with smooth animations and filters.
 * **Private Distribution** — No public app store dependencies; everything stays within your QA environment.
